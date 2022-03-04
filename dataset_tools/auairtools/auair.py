@@ -34,6 +34,7 @@ class AUAIR(object):
         self.categories  = dataset['categories']
         self.num_samples = len(self.annotations)
         self.sorted_annotations = None
+        self.image_name = [f['image_name'] for f in self.annotations]
         '''
         print('Sanity check...')
         tic = time.time()
@@ -43,6 +44,12 @@ class AUAIR(object):
         else:
             raise RuntimeError('Image names in the annotation file and data folder does not match.')
         '''
+
+    def get_image_name_by_index(self, idx):
+        return self.image_name[idx]
+
+    def get_image_size_by_index(self, idx):
+        return self.annotations[idx]['image_width:'], self.annotations[idx]['image_height']
 
     def get_data_by_index(self, index, ret_img=True, ret_ann=True):
         """Get image/annotation data according to index in the annotation file. Index range -> [0, num_samples]
@@ -170,6 +177,19 @@ class AUAIR(object):
         cv2.waitKey() 
         cv2.destroyAllWindows()      
     
+    def get_yolo_format_data_by_index(self, idx):
+        img, ann =  self.get_data_by_index(idx)
+        res = []
+
+        for bbox in ann['bbox']:
+            x = bbox['left']
+            y = bbox['top']
+            w = bbox['width']
+            h = bbox['height']
+            label_index = bbox['class']
+            res.append([label_index, x, y, w, h])
+
+        return res
 
     def _sort_by_time(self, annotations):
         newlist = sorted(annotations, key=lambda k: TimeStamp(k['time'])) 
