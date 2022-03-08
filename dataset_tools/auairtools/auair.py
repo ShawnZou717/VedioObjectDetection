@@ -178,7 +178,7 @@ class AUAIR(object):
         cv2.destroyAllWindows()      
     
     def get_yolo_format_data_by_index(self, idx):
-        img, ann =  self.get_data_by_index(idx)
+        img, ann = self.get_data_by_index(idx)
         res = []
 
         for bbox in ann['bbox']:
