@@ -6,18 +6,30 @@ import sys
 import numpy as np
 import matplotlib.pyplot as plt
 
-labels_path = "/home/shawn/PyVenv/VedioObjectDetection/data/auair_dataset/labels/"
+#dataset_path = "/home/shawn/PyVenv/VedioObjectDetection/data/auair_dataset_cut/"
+#catagories_tag = ['Human', 'Car', 'Truck', 'Van', 'Motorbike', 'Bicycle', 'Bus', 'Trailer']
 
-catagories_tag = ['Human', 'Car', 'Truck', 'Van', 'Motorbike', 'Bicycle', 'Bus', 'Trailer']
+dataset_path = "/home/shawn/PyVenv/VedioObjectDetection/data/VisDrone/VisDrone2019-VID-train/"
+catagories_tag = ['ignored regions', 'pedestrian', 'people', 'bicycle', 'car', 'van', 'truck', 'tricycle', 'awning_tricycle', 'bus', 'motor', 'others']
+category_num = len(catagories_tag)
 
-def get_annotation_files(path = labels_path):
-    train_annotation_path = labels_path + "train"
-    val_annotation_path = labels_path + "val"
-    
-    res = [os.path.join(train_annotation_path, files) for files in os.listdir(train_annotation_path)]
-    for files in os.listdir(val_annotation_path):
-        res.append(os.path.join(val_annotation_path, files))
+def get_annotation_files(annotation_file_path = dataset_path):
+    res = []
+    annotation_file_path = dataset_path + "labels/"
+    for root, dirs, files in os.walk(annotation_file_path):
+        for filename in files:
+            if filename.endswith("txt"):
+                res.append(os.path.join(root, filename))
     print("Totally %d annotation files found."%(len(res)))
+
+    return res
+
+
+def get_image_files(annotation_files):
+    res = list(annotation_files)
+    for idx, _ in enumerate(res):
+        res[idx] = res[idx].replace(".txt", ".jpg")
+        res[idx] = res[idx].replace("/labels/", "/images/")
 
     return res
 
@@ -33,7 +45,7 @@ def get_label_distribution_each_pic(file_list):
         with open(file) as f:
             fcontent = f.readlines()
         
-        label_dis = [0 for i in range(8)]
+        label_dis = [0 for i in range(category_num)]
         for line_content in fcontent:
             if line_content == "":
                 continue
@@ -69,7 +81,7 @@ def get_catagories_per_pic(label_distribution):
 
 
 def get_instance_per_catagories(label_distribution):
-    instance_per_catagories = [0 for i in range(8)]
+    instance_per_catagories = [0 for i in range(category_num)]
     instance_per_catagories = np.array(instance_per_catagories)
     
     for label_dis in label_distribution.values():
@@ -96,11 +108,13 @@ if __name__ == "__main__":
     file_list = get_annotation_files()
     
     label_distribution = get_label_distribution_each_pic(file_list)
+    print(label_distribution)
     
     instance_per_pic = get_instance_per_pic(label_distribution)
+    print(instance_per_pic)
     
     for instances_num, pic_name in zip(instance_per_pic.values(), instance_per_pic.keys()):
-        if instances_num > 15:
+        if instances_num > 1:
             print(pic_name, instances_num)
     
     x, y = count_bar(instance_per_pic.values())
@@ -116,7 +130,7 @@ if __name__ == "__main__":
     ax.set_ylabel("Percent(%)")
     for idx in range(len(y)):
         ax.text(x[idx], y_text[idx], "%.2f"%y[idx], horizontalalignment = 'center')
-    plt.savefig("./instace_per_pic.png")
+    plt.savefig("/home/shawn/scripts_output_tmp/instace_per_pic.png")
     mean_instance = int(sum([x[idx]*y[idx]/100 for idx in range(len(x))]))
     print("There are averagely %d instances per pic."%mean_instance)
 
@@ -134,17 +148,17 @@ if __name__ == "__main__":
     ax.set_ylabel("Percent(%)")
     for idx in range(len(y)):
         ax.text(x[idx], y_text[idx], "%.2f"%y[idx], horizontalalignment = 'center')
-    plt.savefig("./catagories_per_pic.png")
+    plt.savefig("/home/shawn/scripts_output_tmp/catagories_per_pic.png")
     mean_catagory = int(sum([x[idx]*y[idx]/100 for idx in range(len(x))]))
     print("There are averagely %d catagories per pic."%mean_catagory)
     
     instance_per_catagories = get_instance_per_catagories(label_distribution)
     fig4 = plt.figure()
     ax = fig4.add_subplot(111)
-    ax.bar([i+1 for i in range(8)], instance_per_catagories, width = 0.5)
+    ax.bar([i+1 for i in range(category_num)], instance_per_catagories, width = 0.5)
     ax.set_xlabel("catagories")
     ax.set_ylabel("instances per catagory")
-    plt.xticks([i+1 for i in range(8)], catagories_tag, rotation=90)
-    plt.savefig("./instances_per_catagories.png")
+    plt.xticks([i+1 for i in range(category_num)], catagories_tag, rotation=90)
+    plt.savefig("/home/shawn/scripts_output_tmp/instances_per_catagories.png")
     
     

@@ -97,6 +97,10 @@ class AUAIR(object):
 
         return self.get_data_by_index(index, ret_img, ret_ann) 
    
+    def get_index_by_name(self, img_name):
+        img_names = [f['image_name'] for f in self.annotations]
+        index = img_names.index(img_name)
+        return index
 
     def get_index_by_catId(self, catId):
         """Get index of images/annotations including an object belonging to catId category.
@@ -170,8 +174,11 @@ class AUAIR(object):
             w = bbox['width']
             h = bbox['height']
             label = self.categories[bbox['class']]
+            """
             cv2.putText(img, label, (x, y+25), cv2.FONT_HERSHEY_SIMPLEX, 1.0, (255, 255, 0), thickness = 2, lineType=cv2.LINE_AA) 
+            """
             cv2.rectangle(img, (x, y), (x+w, y+h), (255, 255, 0), 2)
+
         
         cv2.imshow("Name: "+ann['image_name']+', Altitude: '+str(ann['altitude']), img)
         cv2.waitKey() 
